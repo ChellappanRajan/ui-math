@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculus of a Card Grid</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one narrow notebook column on graph paper; each trick is a lab sheet with question, live demo, the math, and the CSS meaning. */
+:root{
+  --bg:#F2F5F8; --paper:#FFFFFF; --sunk:#E9EEF3; --ink:#16202C; --muted:#566376; --line:#D3DBE4;
+  --grid:rgba(22,32,44,.05);
+  --accent:#0A7C70; --accent-ink:#FFFFFF; --accent-soft:#D5EDE9;
+  --jump:#B87D00; --good:#2C8A55; --bad:#C23F36; --mixed:#8B95A5;
+  --card:#FFFFFF; --shadow:rgba(16,32,44,.30);
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F141B; --paper:#161D27; --sunk:#111821; --ink:#E6ECF2; --muted:#9AA6B6; --line:#2A3544;
+    --grid:rgba(230,236,242,.035);
+    --accent:#38BFAF; --accent-ink:#06221F; --accent-soft:#12332F;
+    --jump:#F0B93A; --good:#56C489; --bad:#F06A60; --mixed:#6F7B8C;
+    --card:#1D2632; --shadow:rgba(0,0,0,.65); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --paper:#161D27; --sunk:#111821; --ink:#E6ECF2; --muted:#9AA6B6; --line:#2A3544;
+  --grid:rgba(230,236,242,.035);
+  --accent:#38BFAF; --accent-ink:#06221F; --accent-soft:#12332F;
+  --jump:#F0B93A; --good:#56C489; --bad:#F06A60; --mixed:#6F7B8C;
+  --card:#1D2632; --shadow:rgba(0,0,0,.65); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.6;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+main{max-width:840px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px;display:grid;gap:28px}
+h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,6vw,3rem)}
+h2{font-size:1.6rem}
+h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;font-weight:700}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+header.top{display:grid;gap:14px}
+.eyebrow{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);letter-spacing:.04em}
+.lede{font-size:1.1rem;color:var(--muted)}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:24px;display:grid;gap:16px;min-width:0}
+.sheet-head{display:grid;gap:6px}
+.num{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.q{font-size:1.08rem}
+.controls{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:end}
+.ctl{display:grid;gap:2px;font-size:.85rem;color:var(--muted);flex:1 1 200px;min-width:0}
+.ctl output{font-family:var(--f-mono);color:var(--ink)}
+.ctl.check{display:flex;align-items:center;gap:8px;flex:0 1 auto;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent);width:18px;height:18px}
+.radios{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.92rem}
+.radios label{display:flex;align-items:center;gap:6px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-size:.9rem;padding:8px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.math{font-family:var(--f-mono);font-size:.84rem;background:var(--sunk);border-radius:8px;padding:12px 14px;overflow-x:auto;white-space:pre;line-height:1.7;margin:0}
+.math b{color:var(--accent);font-weight:600}
+.cssnote{font-size:.95rem}
+.cssnote strong{font-family:var(--f-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-right:6px}
+.readout{font-family:var(--f-mono);font-size:.88rem;background:var(--accent-soft);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere}
+.readout.bad{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.readout.good{background:transparent;border:1px solid var(--good);color:var(--good)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.cap{font-size:.8rem;color:var(--muted);margin-bottom:4px;font-family:var(--f-mono)}
+canvas.plot{width:100%;height:230px;display:block;background:var(--sunk);border-radius:8px}
+canvas.map{width:100%;height:300px;display:block;border-radius:8px}
+.words{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px 18px;font-size:.93rem}
+.words div{min-width:0}
+.words b{font-family:var(--f-mono);font-size:.85rem;color:var(--accent);display:block}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+td.mono{font-family:var(--f-mono)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-mono);font-size:.8rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+.chip.jump{border-color:var(--jump);color:var(--jump)}
+.chip.bend{border-color:var(--accent);color:var(--accent)}
+.bar{display:flex;height:30px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.seg{height:100%}
+.seg.pass{background:var(--good)} .seg.fail{background:var(--bad)} .seg.mixed{background:var(--mixed)}
+.barscale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.big{font-family:var(--f-display);font-size:2.2rem;line-height:1}
+/* stages: the "screen" is the sunk area, the max-width box is paper, cards sit on top */
+.stage{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--sunk);min-height:40px}
+.stage-inner{position:absolute;left:0;top:0;transform-origin:0 0}
+.stage-box{position:absolute;top:0;background:var(--paper);border-left:1px dashed var(--line);border-right:1px dashed var(--line)}
+.mcard{position:absolute;height:70px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;overflow:hidden;font-size:13px;line-height:1.35;color:var(--ink)}
+.mcard b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcard span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.mcard .tag{display:block;font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--accent);white-space:nowrap}
+.mcard .tag:empty{display:none}
+.mcard.cut{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.ghost{position:absolute;height:70px;border:2px dashed var(--accent);border-radius:8px;z-index:2;pointer-events:none}
+/* real CSS grid render */
+.realwrap{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
+.realInner{position:absolute;left:0;top:0;transform-origin:0 0}
+.real-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:16px;padding:16px;max-width:900px;margin:0 auto;background:var(--paper)}
+.real-grid > div{height:70px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;overflow:hidden;font-size:13px;line-height:1.35;min-width:0}
+.real-grid b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.real-grid span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+footer{font-size:.88rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="eyebrow">A beginner's lab · HTML, CSS and a little calculus</div>
+    <h1>Calculus of a Card Grid</h1>
+    <p class="lede">Shu Ding's post turned a whole React dashboard into a math function and showed 11 tricks. Here are the same 11 tricks on the smallest dashboard possible: six cards in a grid. Drag every slider. Nothing here is a screenshot; it is all computed live.</p>
+  </header>
+
+  <!-- INTRO -->
+  <section class="sheet" id="intro">
+    <div class="sheet-head">
+      <div class="num">Start here</div>
+      <h2>The one function we play with</h2>
+      <p class="q">A browser page is just a machine: you feed it numbers (window width, gap, padding) and it gives you back positions and sizes. In math we call that a function: <code>UI = f(props)</code>.</p>
+    </div>
+    <div class="two">
+      <div style="min-width:0">
+        <div class="cap">The HTML</div>
+<pre class="math">&lt;div class="grid"&gt;
+  &lt;div&gt;&lt;b&gt;Revenue&lt;/b&gt;...&lt;/div&gt;
+  &lt;div&gt;&lt;b&gt;Signups&lt;/b&gt;...&lt;/div&gt;
+  ... 6 cards in total
+&lt;/div&gt;</pre>
+      </div>
+      <div style="min-width:0">
+        <div class="cap">The CSS</div>
+<pre class="math">.grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  max-width: 900px;
+}
+.grid &gt; div { height: 70px; }</pre>
+      </div>
+    </div>
+    <p>In plain words: "fit as many 120px-wide cards in a row as you can, then stretch them to fill the row; never let the box get wider than 900px". The same rules written as math:</p>
+<pre class="math">W = window width                        (the prop we change)
+c = min(W, 900)                         box width, capped at 900
+need(n) = 2·16 + n·120 + (n−1)·16       width needed to fit n cards
+n = 1 + <b>step</b>(c − need(2)) + … + <b>step</b>(c − need(6))   number of columns
+cardWidth = (c − 32 − (n−1)·16) / n
+rows = ⌈6 / n⌉
+H = 32 + rows·70 + (rows−1)·16          page height</pre>
+    <p><code>step(x)</code> is a light switch: 0 when x is negative, 1 otherwise. Each switch flips on when there's room for one more column. That's the only "if" in the whole layout.</p>
+    <div class="controls">
+      <label class="ctl" for="introW">Window width W <output id="introWo"></output><input type="range" id="introW" min="220" max="1200" value="620"></label>
+    </div>
+    <div class="cap">The real browser running the CSS</div>
+    <div class="realwrap" id="real"><div class="realInner" id="realInner"><div class="real-grid" id="realGrid"></div></div></div>
+    <div class="cap">Our math function, drawn by hand from the formulas</div>
+    <div id="mathStage"></div>
+    <div class="readout" id="introRead"></div>
+  </section>
+
+  <section class="sheet">
+    <div class="sheet-head"><div class="num">Glossary</div><h2>Math words you'll meet</h2></div>
+    <div class="words">
+      <div><b>step(x)</b>A light switch. Jumps from 0 to 1 at x = 0.</div>
+      <div><b>sigmoid(x)</b>A dimmer switch. Slides smoothly from 0 to 1 around x = 0.</div>
+      <div><b>derivative f′</b>Speed. "If I nudge the input by 1, how much does the output move?"</div>
+      <div><b>gradient</b>All the speeds together: which way to turn each knob to improve a score.</div>
+      <div><b>interval [a, b]</b>"Every number from a to b". Do math on whole ranges at once.</div>
+      <div><b>integral ∫</b>Adding up infinitely many tiny pieces, e.g. an exact average.</div>
+      <div><b>Fourier transform</b>Writing any wiggly line as a sum of simple waves.</div>
+      <div><b>complex number a + bi</b>A number with a second, "imaginary" direction.</div>
+    </div>
+  </section>
+
+  <!-- 1 VELOCITY -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 1 of 11</div>
+      <h2>Velocity</h2>
+      <p class="q">If the window gets 1px wider, how far does each card move, and how much does it grow?</p>
+    </div>
+    <div class="controls"><label class="ctl" for="velW">Window width W <output id="velWo"></output><input type="range" id="velW" min="300" max="1150" value="620"></label></div>
+    <div id="velStage"></div>
+    <div class="readout" id="velRead"></div>
+<pre class="math">∂x/∂W = (how much x moves) / (how much W moved)
+cardWidth = (W − 32 − (n−1)·16) / n   →   ∂cardWidth/∂W = <b>1/n</b>
+card in column k sits at x = 16 + k·(cardWidth + 16)  →  ∂x/∂W = <b>k/n</b>
+Above 900px the box stops growing and just re-centers: every card moves <b>0.5</b>.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Each card shows <code>→</code> its sliding speed and <code>↔</code> its growing speed. We get them from the formula in one pass. No rendering twice and comparing.</p>
+  </section>
+
+  <!-- 2 GRADIENT -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 2 of 11</div>
+      <h2>Gradient</h2>
+      <p class="q">Goal: on phone, tablet and laptop, no card narrower than 140px (so descriptions aren't cut off), and pages as short as possible. Can math pick the gap, padding and card size for us?</p>
+    </div>
+    <div class="three" id="gradStages"></div>
+    <div class="controls">
+      <div class="ctl">gap <output id="gG"></output></div>
+      <div class="ctl">padding <output id="gP"></output></div>
+      <div class="ctl">min card width <output id="gM"></output></div>
+      <div class="ctl">score (lower is better) <output id="gC"></output></div>
+    </div>
+    <div class="btns"><button class="btn" id="gStep">Take 1 step downhill</button><button class="btn" id="gRun">Run 80 steps</button><button class="btn ghost" id="gReset">Reset</button></div>
+    <canvas class="plot" id="gPlot" style="height:150px" aria-label="Score after each step"></canvas>
+    <div class="readout" id="gRead"></div>
+<pre class="math">score = Σ (page height)/100  +  Σ max(0, 140 − cardWidth)
+gradient = ( ∂score/∂gap, ∂score/∂padding, ∂score/∂cardMin )
+new knobs = old knobs − small step × gradient        ← "walk downhill"</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Red outlines mark cards under 140px. Gradient descent is the same idea used to train AI models, here used to tune <code>gap</code>, <code>padding</code> and <code>minmax(…px, 1fr)</code>. A light switch has no slope, so we use the dimmer version (trick 6) while searching. The search starts very soft and sharpens step by step, so it can see breakpoints from far away. We measure each slope by nudging a knob 0.5px; the original project reads it exactly from the formula.</p>
+  </section>
+
+  <!-- 3 PROOF -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 3 of 11</div>
+      <h2>Proof</h2>
+      <p class="q">Can we be 100% sure the page stays under a height limit for every window width in a range, not just the few we tested?</p>
+    </div>
+    <div class="controls">
+      <label class="ctl" for="prLo">From width <output id="prLoo"></output><input type="range" id="prLo" min="200" max="1400" value="320"></label>
+      <label class="ctl" for="prHi">To width <output id="prHio"></output><input type="range" id="prHi" min="200" max="1400" value="1400"></label>
+      <label class="ctl" for="prLim">Height limit <output id="prLimo"></output><input type="range" id="prLim" min="100" max="600" value="300"></label>
+    </div>
+    <div class="cap">Step 1: run every formula on the whole range at once</div>
+    <div class="tbl-wrap"><table id="ivTable"></table></div>
+    <div class="cap">Step 2: if the answer is "maybe", cut the range in half and try again</div>
+    <div class="bar" id="prBar"></div>
+    <div class="barscale"><span id="prBarLo"></span><span id="prBarHi"></span></div>
+    <div class="legend"><span><i style="background:var(--good)"></i>proven OK everywhere</span><span><i style="background:var(--bad)"></i>proven to fail everywhere</span></div>
+    <div class="readout" id="prRead"></div>
+<pre class="math">Interval arithmetic: do the math on [lowest, highest] instead of one number.
+[a, b] − 32 = [a − 32, b − 32]       min([a,b], 900) = [min(a,900), min(b,900)]
+Every step keeps the true answer inside the range, so if the
+largest possible height ≤ limit, it's <b>proven</b> for infinitely many widths.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>A normal test checks 3 or 4 screen sizes. This checks every width between the two sliders, including 517.3px and every other width you'd never think to test.</p>
+  </section>
+
+  <!-- 4 DISCONTINUITY -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 4 of 11</div>
+      <h2>Discontinuity</h2>
+      <p class="q">Where exactly does the layout jump or change behaviour, without dragging the window around?</p>
+    </div>
+    <canvas class="plot" id="discPlot" aria-label="Card width against window width"></canvas>
+    <div class="legend"><span><i style="background:var(--jump)"></i>jump: a card wraps to a new row</span><span><i style="background:var(--accent)"></i>bend: the box hits max-width</span></div>
+    <div class="chips" id="discList"></div>
+<pre class="math">A <b>jump</b> in f(x): the line breaks.       → a card moves to another row
+A <b>jump</b> in f′(x): the line bends.        → something hit a limit (max-width)
+Jumps happen exactly where a step() flips: c = need(n), solved by hand.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Our CSS has zero <code>@media</code> breakpoints, yet the layout still has 5 jumps and 1 bend. The math finds the real visual breakpoints, not just the ones someone wrote down.</p>
+  </section>
+
+  <!-- 5 GEODESIC -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 5 of 11</div>
+      <h2>Geodesic</h2>
+      <p class="q">We change two props at once: window 650 → 1000px and max-width 900 → 500px. Which route between them makes the fewest cards jump?</p>
+    </div>
+    <canvas class="map" id="geoMap" aria-label="Map of column counts across window width and max-width"></canvas>
+    <div class="radios" id="geoRadios"></div>
+    <div class="controls"><label class="ctl" for="geoT">Travel along the route <output id="geoTo"></output><input type="range" id="geoT" min="0" max="1000" value="0"></label></div>
+    <div id="geoStage"></div>
+    <div class="readout" id="geoRead"></div>
+<pre class="math">Every design is a point (W, maxWidth) on this map. Shading = number of columns.
+Crossing a shade border = a jump. The <b>geodesic</b> is the route with the fewest jumps.
+The straight line isn't always best: it can cross the same border twice.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Changing <code>max-width</code> first, then the window, keeps the cards calm. Changing both together makes cards wrap and unwrap.</p>
+  </section>
+
+  <!-- 6 SMOOTHNESS -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 6 of 11</div>
+      <h2>Smoothness</h2>
+      <p class="q">What if we replace every light switch with a dimmer?</p>
+    </div>
+    <div class="controls">
+      <label class="ctl check" for="smSoft"><input type="checkbox" id="smSoft" checked> Use sigmoid (dimmer)</label>
+      <label class="ctl" for="smTau">Softness τ <output id="smTauo"></output><input type="range" id="smTau" min="2" max="40" value="14"></label>
+      <label class="ctl" for="smW">Window width W <output id="smWo"></output><input type="range" id="smW" min="300" max="1000" value="690"></label>
+    </div>
+    <div class="btns"><button class="btn" id="smPlay">Play a resize</button></div>
+    <div id="smStage"></div>
+<pre class="math">step(x)    = 0 or 1              ← cards teleport
+sigmoid(x) = 1 / (1 + e^(−x/τ))  ← cards glide
+weight of "n columns" = s(n) − s(n+1), then blend the n-column layouts</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>There is no <code>transition</code> or <code>animation</code> in this demo. The movement comes only from softening the math. Turn the checkbox off to see cards jump.</p>
+  </section>
+
+  <!-- 7 LINEARITY -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 7 of 11</div>
+      <h2>Linearity</h2>
+      <p class="q">Can we skip the layout calculation while the user resizes?</p>
+    </div>
+    <div class="controls">
+      <label class="ctl" for="lnW">Window width W <output id="lnWo"></output><input type="range" id="lnW" min="300" max="1150" value="640"></label>
+    </div>
+    <div class="btns"><button class="btn ghost" id="lnAnchor">Compute exactly here</button></div>
+    <div id="lnStage"></div>
+    <div class="readout" id="lnRead"></div>
+<pre class="math">f(x) ≈ f(a) + f′(a)·(x − a)       ← the tangent-line formula
+Between two breakpoints the cards move in straight lines, so this is <b>exact</b>.
+Dashed outlines = predicted spot.  Solid cards = real layout.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Lay out once, remember the speeds, and predict every resize frame with one multiply. Only redo the full layout after crossing a breakpoint.</p>
+  </section>
+
+  <!-- 8 SIGNAL -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 8 of 11</div>
+      <h2>Signal</h2>
+      <p class="q">Page height across window widths is a wiggly line, like a sound. What if we compress it like an MP3 or JPEG?</p>
+    </div>
+    <div class="controls"><label class="ctl" for="fK">Keep the biggest waves <output id="fKo"></output><input type="range" id="fK" min="1" max="60" value="6"></label></div>
+    <canvas class="plot" id="fPlot" aria-label="Page height and its compressed version"></canvas>
+    <div class="legend"><span><i style="background:var(--muted)"></i>real page height H(W)</span><span><i style="background:var(--accent)"></i>rebuilt from a few waves</span></div>
+<pre class="math">H(W) = a₀ + a₁·wave₁ + a₂·wave₂ + …     (Fourier transform)
+Keep only the biggest waves → a blurry, "JPEG-ish" layout.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Not useful, just fun. The ripples near each jump are the same effect that makes JPEG photos fuzzy around sharp edges.</p>
+  </section>
+
+  <!-- 9 AVERAGE -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 9 of 11</div>
+      <h2>Average</h2>
+      <p class="q">Given who actually visits, how tall is the page on average?</p>
+    </div>
+    <div class="controls">
+      <label class="ctl" for="avPh">Phones (~390px) <output id="avPho"></output><input type="range" id="avPh" min="0" max="100" value="60"></label>
+      <label class="ctl" for="avTb">Tablets (~800px) <output id="avTbo"></output><input type="range" id="avTb" min="0" max="100" value="15"></label>
+      <label class="ctl" for="avDt">Laptops (~1440px) <output id="avDto"></output><input type="range" id="avDt" min="0" max="100" value="25"></label>
+    </div>
+    <canvas class="plot" id="avPlot" aria-label="Share of visitors by window width with layout pieces"></canvas>
+    <div class="two">
+      <div class="tbl-wrap"><table id="avTable"></table></div>
+      <div style="display:grid;align-content:center;gap:6px"><div class="cap">Exact average page height</div><div class="big" id="avBig"></div><div class="cap" id="avSub"></div></div>
+    </div>
+<pre class="math">average = ∫ H(w) · ρ(w) dw          ρ = how common each width is
+H is flat between breakpoints, so the integral is just
+average = Σ  (height of piece) × (share of visitors in that piece)</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Your analytics tell you who visits. This gives the exact average page those visitors see. No sampling, no guessing.</p>
+  </section>
+
+  <!-- 10 IMAGINARY -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 10 of 11</div>
+      <h2>Imaginary</h2>
+      <p class="q">What happens if the window width is a complex number, like 696 + 30i px?</p>
+    </div>
+    <div class="controls">
+      <label class="ctl" for="imRe">Real part (normal width) <output id="imReo"></output><input type="range" id="imRe" min="420" max="1000" value="680"></label>
+      <label class="ctl" for="imIm">Imaginary part <output id="imImo"></output><input type="range" id="imIm" min="0" max="44" value="24"></label>
+    </div>
+    <div class="btns"><button class="btn" id="imWalk">Walk around the 696px breakpoint</button></div>
+    <div id="imStage"></div>
+    <div class="readout" id="imRead"></div>
+<pre class="math">W = a + b·i       Feed it into the dimmer version from trick 6.
+Real part of each result      → where the card is drawn
+Imaginary part of each result → how high it "lifts" (shadow + scale)
+Imaginary part ≈ (imaginary nudge) × (speed), so fast movers lift. We subtract
+the steady sliding, so only cards jumping across a breakpoint rise, pass over, and land.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>Lift is drawn with <code>box-shadow</code> and <code>transform: scale()</code>, but the amount comes from the math. Far from a breakpoint cards barely lift; the card that travels furthest at the wrap lifts the most.</p>
+  </section>
+
+  <!-- 11 FUTURE -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <div class="num">Trick 11 of 11</div>
+      <h2>Proof in CI</h2>
+      <p class="q">A teammate changes the gap. Before merging, can a robot prove the page never gets too tall on any screen?</p>
+    </div>
+    <div class="controls">
+      <label class="ctl" for="ciG">New gap <output id="ciGo"></output><input type="range" id="ciG" min="4" max="48" value="32"></label>
+      <label class="ctl" for="ciL">Rule: height ≤ <output id="ciLo"></output><input type="range" id="ciL" min="150" max="500" value="300"></label>
+    </div>
+    <div class="two">
+      <div style="min-width:0;display:grid;gap:6px"><div class="cap">Before: gap 16px</div><div class="bar" id="ciBar0"></div><div class="readout" id="ciR0"></div></div>
+      <div style="min-width:0;display:grid;gap:6px"><div class="cap" id="ciCap1"></div><div class="bar" id="ciBar1"></div><div class="readout" id="ciR1"></div></div>
+    </div>
+    <div class="barscale"><span>320px</span><span>1440px</span></div>
+<pre class="math">Like a type checker for layout: trick 3 run automatically on every code change,
+over every width from 320 to 1440px, not just a few screenshots.</pre>
+    <p class="cssnote"><strong>In CSS terms</strong>This is Shu's vision for the future: layout code, the browser engine and real-user data in one loop, with layout bugs caught by proof instead of by eye.</p>
+  </section>
+
+  <footer>Based on Shu Ding's <a href="https://calculus-of-interfaces.vercel.app/" target="_blank" rel="noopener">Calculus of Interfaces</a> (Vercel Labs), inspired by Cheng Lou's Handwired. Everything here runs one small layout formula; the real project compiles a full React dashboard into 2,608 operations. Step-by-step math tutorial: <a href="https://github.com/ChellappanRajan/ui-math" target="_blank" rel="noopener">github.com/ChellappanRajan/ui-math</a>.</footer>
+</main>
+
+<script>
+/*CORE*/
+const N = 6, CH = 70;
+const CARDS = [["Revenue","€48,210 this week"],["Signups","1,204 new accounts"],["Churn","2.1% monthly cancellations"],["Active users","8,930 people today"],["Tickets","37 waiting for a reply"],["Uptime","99.98% over 30 days"]];
+const BASE = {g:16, p:16, m:120, M:900};
+const step = x => x >= 0 ? 1 : 0;
+const sig = x => 1 / (1 + Math.exp(-x));
+function need(n, P){ return 2*P.p + n*P.m + (n-1)*P.g; }
+function weights(c, P, tau){
+  const s = [];
+  for (let n = 1; n <= 7; n++) s[n] = n === 1 ? 1 : n === 7 ? 0 : (tau > 0 ? sig((c - need(n,P)) / tau) : step(c - need(n,P)));
+  const w = [];
+  for (let n = 1; n <= 6; n++) w[n] = s[n] - s[n+1];
+  return w;
+}
+function layoutN(n, c, P){
+  const inner = c - 2*P.p, cw = (inner - (n-1)*P.g) / n, rows = Math.ceil(N/n);
+  const cards = [];
+  for (let i = 0; i < N; i++){ const col = i % n, row = Math.floor(i/n); cards.push({x:P.p + col*(cw+P.g), y:P.p + row*(CH+P.g), w:cw}); }
+  return {cards, cw, H: 2*P.p + rows*CH + (rows-1)*P.g};
+}
+function layout(W, P = BASE, tau = 0){
+  const c = Math.min(W, P.M), off = (W - c)/2, w = weights(c, P, tau);
+  const cards = Array.from({length:N}, () => ({x:0, y:0, w:0}));
+  let H = 0, cw = 0, cols = 0;
+  for (let n = 1; n <= 6; n++){
+    if (w[n] === 0) continue;
+    const L = layoutN(n, c, P);
+    L.cards.forEach((k,i) => { cards[i].x += w[n]*k.x; cards[i].y += w[n]*k.y; cards[i].w += w[n]*k.w; });
+    H += w[n]*L.H; cw += w[n]*L.cw; cols += w[n]*n;
+  }
+  cards.forEach(k => k.x += off);
+  return {cards, H, cw, cols, c, off, W};
+}
+function hardCols(W, P = BASE){ const c = Math.min(W, P.M); let n = 1; for (let k = 2; k <= 6; k++) n += step(c - need(k,P)); return n; }
+function velocity(W, P = BASE){
+  const n = hardCols(W, P), c1 = W < P.M ? 1 : 0, o1 = W < P.M ? 0 : 0.5;
+  return Array.from({length:N}, (_,i) => ({dx: o1 + (i % n)*c1/n, dw: c1/n}));
+}
+const Hrows = (r, P) => 2*P.p + r*CH + (r-1)*P.g;
+const colsAt = (c, P) => Math.min(6, Math.max(1, Math.floor((c - 2*P.p + P.g)/(P.m + P.g))));
+function intervalH(lo, hi, P){
+  const clo = Math.min(lo, P.M), chi = Math.min(hi, P.M);
+  const nlo = colsAt(clo, P), nhi = colsAt(chi, P);
+  const rlo = Math.ceil(N/nhi), rhi = Math.ceil(N/nlo);
+  return {clo, chi, nlo, nhi, rlo, rhi, Hlo:Hrows(rlo,P), Hhi:Hrows(rhi,P)};
+}
+function prove(lo, hi, P, L){
+  const out = []; let checks = 0;
+  (function rec(a, b, d){
+    checks++;
+    const I = intervalH(a, b, P);
+    if (I.Hhi <= L) out.push([a,b,'pass']);
+    else if (I.Hlo > L) out.push([a,b,'fail']);
+    else if (b - a < 0.5 || d > 16) out.push([a,b,'mixed']);
+    else { const m = (a+b)/2; rec(a,m,d+1); rec(m,b,d+1); }
+  })(lo, hi, 0);
+  const merged = [];
+  for (const s of out){ const t = merged[merged.length-1]; if (t && t[2] === s[2]) t[1] = s[1]; else merged.push(s.slice()); }
+  return {segs: merged, checks};
+}
+function badRuns(segs){ const out = []; segs.forEach(sg => { if (sg[2] === 'pass') return; const t = out[out.length-1]; if (t && Math.abs(t[1] - sg[0]) < 1e-6) t[1] = sg[1]; else out.push(sg.slice()); }); return out; }
+const SCREENS = [360, 768, 1280];
+function cost(P, tau = 6){
+  let s = 0;
+  for (const W of SCREENS){ const L = layout(W, {...BASE, ...P}, tau); s += L.H/100 + Math.max(0, 140 - L.cw); }
+  return s;
+}
+const LIMITS = {g:[8,48], p:[8,48], m:[80,260]};
+function gradStep(P, lr, tau = 6){
+  const h = 0.5, gr = {}; let norm = 0;
+  for (const k of ['g','p','m']){ const a = {...P}, b = {...P}; a[k] += h; b[k] -= h; gr[k] = (cost(a, tau) - cost(b, tau))/(2*h); norm += gr[k]*gr[k]; }
+  norm = Math.sqrt(norm);
+  if (norm < 1e-9) return P;
+  const Q = {...P};
+  for (const k of ['g','p','m']) Q[k] = Math.min(LIMITS[k][1], Math.max(LIMITS[k][0], P[k] - lr*gr[k]/norm));
+  return Q;
+}
+/*ENDCORE*/
+
+const $ = s => document.querySelector(s);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const renders = [];
+function bindRange(id, fmt){ const el = $('#'+id), o = $('#'+id+'o'); const set = () => { if (o) o.textContent = fmt(+el.value); }; el.addEventListener('input', set); set(); return el; }
+const px = v => Math.round(v) + 'px';
+
+function makeStage(host, opts = {}){
+  const outer = document.createElement('div'); outer.className = 'stage';
+  const inner = document.createElement('div'); inner.className = 'stage-inner';
+  const box = document.createElement('div'); box.className = 'stage-box'; inner.append(box);
+  const cards = [], ghosts = [];
+  for (let i = 0; i < N; i++){
+    if (opts.ghost){ const g = document.createElement('div'); g.className = 'ghost'; inner.append(g); ghosts.push(g); }
+    const c = document.createElement('div'); c.className = 'mcard';
+    c.innerHTML = `<b>${CARDS[i][0]}</b><span>${CARDS[i][1]}</span><em class="tag"></em>`;
+    inner.append(c); cards.push(c);
+  }
+  outer.append(inner); host.append(outer);
+  return {outer, inner, box, cards, ghosts};
+}
+function drawStage(st, W, L){
+  const avail = st.outer.clientWidth || 600, s = Math.min(1, avail / W), H = Math.max(40, L.H);
+  st.inner.style.width = W + 'px'; st.inner.style.height = H + 'px'; st.inner.style.transform = `scale(${s})`;
+  st.outer.style.height = (H * s) + 'px';
+  st.box.style.left = L.off + 'px'; st.box.style.width = L.c + 'px'; st.box.style.height = H + 'px';
+  L.cards.forEach((k,i) => { const e = st.cards[i]; e.style.left = k.x + 'px'; e.style.top = k.y + 'px'; e.style.width = Math.max(8, k.w) + 'px'; });
+}
+
+function plot(cv, o){
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  cv.width = w*dpr; cv.height = h*dpr;
+  const x = cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+  const L = 46, R = 12, T = 12, B = 30;
+  const X = v => L + (v - o.xmin)/(o.xmax - o.xmin)*(w - L - R);
+  const Y = v => T + (1 - (v - o.ymin)/(o.ymax - o.ymin))*(h - T - B);
+  x.font = '11px "JetBrains Mono", monospace'; x.lineWidth = 1;
+  (o.bands || []).forEach(b => { x.fillStyle = b.color; x.fillRect(X(b.x0), T, X(b.x1) - X(b.x0), h - T - B); if (b.label){ x.fillStyle = css('--muted'); x.textAlign = 'center'; x.fillText(b.label, (X(b.x0)+X(b.x1))/2, T + 12); } });
+  x.strokeStyle = css('--line'); x.fillStyle = css('--muted');
+  (o.xticks || []).forEach(t => { x.beginPath(); x.moveTo(X(t), T); x.lineTo(X(t), h - B); x.stroke(); x.textAlign = 'center'; x.fillText(t, X(t), h - B + 15); });
+  (o.yticks || []).forEach(t => { x.beginPath(); x.moveTo(L, Y(t)); x.lineTo(w - R, Y(t)); x.stroke(); x.textAlign = 'right'; x.fillText(t, L - 6, Y(t) + 4); });
+  if (o.xlabel){ x.textAlign = 'right'; x.fillText(o.xlabel, w - R, h - 2); }
+  if (o.ylabel){ x.textAlign = 'left'; x.fillText(o.ylabel, L + 4, T + 10 + (o.bands ? 14 : 0)); }
+  (o.marks || []).forEach(m => { x.strokeStyle = m.color; x.lineWidth = 1.5; x.setLineDash(m.dash || []); x.beginPath(); x.moveTo(X(m.x), T); x.lineTo(X(m.x), h - B); x.stroke(); x.setLineDash([]); });
+  (o.series || []).forEach(s => {
+    x.strokeStyle = s.color; x.lineWidth = s.width || 2; x.setLineDash(s.dash || []);
+    if (s.fill){ x.fillStyle = s.fill; x.beginPath(); x.moveTo(X(s.pts[0][0]), Y(o.ymin)); s.pts.forEach(p => x.lineTo(X(p[0]), Y(p[1]))); x.lineTo(X(s.pts[s.pts.length-1][0]), Y(o.ymin)); x.closePath(); x.fill(); }
+    x.beginPath(); let pen = false;
+    s.pts.forEach(p => { if (!p){ pen = false; return; } const px_ = X(p[0]), py = Y(Math.max(o.ymin, Math.min(o.ymax, p[1]))); if (!pen){ x.moveTo(px_, py); pen = true; } else x.lineTo(px_, py); });
+    x.stroke(); x.setLineDash([]);
+  });
+  (o.dots || []).forEach(d => { x.fillStyle = d.color; x.beginPath(); x.arc(X(d.x), Y(d.y), d.r || 4, 0, 7); x.fill(); });
+  return {X, Y};
+}
+function alpha(hexc, a){ const c = hexc.replace('#',''); const v = [0,2,4].map(i => parseInt(c.slice(i,i+2),16)); return `rgba(${v.join(',')},${a})`; }
+function mix(a, b, t){ const h = s => { s = s.replace('#',''); return [0,2,4].map(i => parseInt(s.slice(i,i+2),16)); }; const A = h(a), B_ = h(b); return `rgb(${A.map((v,i) => Math.round(v + (B_[i]-v)*t)).join(',')})`; }
+
+/* ---------- INTRO ---------- */
+(() => {
+  const grid = $('#realGrid');
+  CARDS.forEach(c => { const d = document.createElement('div'); d.innerHTML = `<b>${c[0]}</b><span>${c[1]}</span>`; grid.append(d); });
+  const W = bindRange('introW', px), st = makeStage($('#mathStage'));
+  const outer = $('#real'), inner = $('#realInner');
+  function r(){
+    const w = +W.value, s = Math.min(1, (outer.clientWidth || 600)/w);
+    inner.style.width = w + 'px'; inner.style.transform = `scale(${s})`; outer.style.height = (inner.offsetHeight*s) + 'px';
+    const bc = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+    const L = layout(w); drawStage(st, w, L);
+    const n = hardCols(w);
+    $('#introRead').textContent = `Browser draws ${bc} column${bc>1?'s':''}. The formula says ${n}. Card width ${L.cw.toFixed(1)}px, page height ${L.H}px.` + (bc === n ? ' They match.' : '');
+  }
+  W.addEventListener('input', r); renders.push(r);
+})();
+
+/* ---------- 1 VELOCITY ---------- */
+(() => {
+  const W = bindRange('velW', px), st = makeStage($('#velStage'));
+  function r(){
+    const w = +W.value, L = layout(w), v = velocity(w); drawStage(st, w, L);
+    st.cards.forEach((e,i) => e.querySelector('.tag').textContent = `→${v[i].dx.toFixed(2)} ↔${v[i].dw.toFixed(2)}`);
+    const k = v[2];
+    $('#velRead').textContent = `If the window grows by 10px, "Churn" slides ${(10*k.dx).toFixed(1)}px right and gets ${(10*k.dw).toFixed(1)}px wider. (${hardCols(w)} columns right now.)`;
+  }
+  W.addEventListener('input', r); renders.push(r);
+})();
+
+/* ---------- 2 GRADIENT ---------- */
+(() => {
+  const host = $('#gradStages'), stages = [];
+  SCREENS.forEach((s, i) => { const wrap = document.createElement('div'); wrap.style.minWidth = '0'; const cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = ['Phone','Tablet','Laptop'][i] + ' ' + s + 'px'; wrap.append(cap); host.append(wrap); stages.push({st: makeStage(wrap), W: s, cap}); });
+  const start = {g:16, p:16, m:120};
+  let P = {...start}, hist = [cost(P)], it = 0, timer = null;
+  function hardReport(){ let cut = 0, Hs = 0; SCREENS.forEach(W => { const L = layout(W, {...BASE, ...P}); Hs += L.H; if (L.cw < 140) cut += N; }); return {cut, Hs}; }
+  function r(){
+    const PP = {...BASE, ...P};
+    stages.forEach(o => { const L = layout(o.W, PP); drawStage(o.st, o.W, L); o.st.cards.forEach(e => e.classList.toggle('cut', L.cw < 140)); });
+    $('#gG').textContent = P.g.toFixed(1) + 'px'; $('#gP').textContent = P.p.toFixed(1) + 'px'; $('#gM').textContent = P.m.toFixed(1) + 'px'; $('#gC').textContent = cost(P).toFixed(2);
+    const hr = hardReport();
+    const el = $('#gRead');
+    el.className = 'readout ' + (hr.cut ? 'bad' : 'good');
+    el.textContent = `After ${it} steps: ${hr.cut ? hr.cut + ' cards are cut off' : 'no cards cut off'}, total height of the 3 pages ${Math.round(hr.Hs)}px. CSS to ship: gap ${Math.round(P.g)}px; padding ${Math.round(P.p)}px; minmax(${Math.round(P.m)}px, 1fr).`;
+    const ys = hist, ymax = Math.max(...ys)*1.05, ymin = Math.min(...ys)*0.95;
+    plot($('#gPlot'), {xmin:0, xmax:Math.max(10, ys.length-1), ymin, ymax, xticks:[0, Math.max(10, ys.length-1)], yticks:[+ymin.toFixed(1), +ymax.toFixed(1)], xlabel:'step', ylabel:'score', series:[{pts: ys.map((y,i) => [i,y]), color: css('--accent')}]});
+  }
+  function one(){ const lr = Math.max(0.3, 3*Math.pow(0.97, it)); P = gradStep(P, lr, Math.max(4, 40*Math.pow(0.95, it))); it++; hist.push(cost(P)); }
+  $('#gStep').onclick = () => { one(); r(); };
+  $('#gRun').onclick = () => { if (timer) return; let k = 0; timer = setInterval(() => { one(); r(); if (++k >= 80){ clearInterval(timer); timer = null; } }, 40); };
+  $('#gReset').onclick = () => { if (timer){ clearInterval(timer); timer = null; } P = {...start}; it = 0; hist = [cost(P)]; r(); };
+  renders.push(r);
+})();
+
+/* ---------- 3 PROOF ---------- */
+(() => {
+  const lo = bindRange('prLo', px), hi = bindRange('prHi', px), lim = bindRange('prLim', px);
+  function bar(el, segs, a, b){
+    el.innerHTML = '';
+    segs.forEach(s => { const d = document.createElement('div'); d.className = 'seg ' + s[2]; d.style.width = ((s[1]-s[0])/(b-a)*100) + '%'; d.title = `${Math.round(s[0])}–${Math.round(s[1])}px: ${s[2]}`; el.append(d); });
+  }
+  function r(){
+    let a = +lo.value, b = +hi.value; if (a > b) [a, b] = [b, a]; if (a === b) b = a + 1;
+    const L = +lim.value, P = BASE, I = intervalH(a, b, P);
+    $('#ivTable').innerHTML = `<tr><th>Formula</th><th>Range of possible values</th></tr>
+      <tr><td>W</td><td class="mono">[${a}, ${b}]</td></tr>
+      <tr><td>c = min(W, 900)</td><td class="mono">[${I.clo}, ${I.chi}]</td></tr>
+      <tr><td>columns n</td><td class="mono">[${I.nlo}, ${I.nhi}]</td></tr>
+      <tr><td>rows = ⌈6 / n⌉</td><td class="mono">[${I.rlo}, ${I.rhi}]</td></tr>
+      <tr><td>page height H</td><td class="mono">[${I.Hlo}, ${I.Hhi}] → ${I.Hhi <= L ? 'always ≤ ' + L + ' ✓ proven' : I.Hlo > L ? 'always > ' + L + ' ✗ proven' : 'maybe? split it'}</td></tr>`;
+    const res = prove(a, b, P, L);
+    bar($('#prBar'), res.segs, a, b); $('#prBarLo').textContent = a + 'px'; $('#prBarHi').textContent = b + 'px';
+    const fails = badRuns(res.segs);
+    const el = $('#prRead');
+    el.className = 'readout ' + (fails.length ? 'bad' : 'good');
+    el.textContent = (fails.length ? 'Fails for widths ' + fails.map(s => `${Math.ceil(s[0])}–${Math.floor(s[1])}px`).join(', ') + '.' : `Proven: height ≤ ${L}px for every width from ${a} to ${b}px.`) + ` That took ${res.checks} range checks to cover infinitely many widths.`;
+  }
+  [lo, hi, lim].forEach(e => e.addEventListener('input', r)); renders.push(r);
+})();
+
+/* ---------- 4 DISCONTINUITY ---------- */
+(() => {
+  const P = BASE, jumps = [];
+  for (let n = 2; n <= 6; n++){ const w = need(n, P); if (w < P.M) jumps.push({w, n}); }
+  const list = $('#discList');
+  jumps.forEach(j => { const c = document.createElement('span'); c.className = 'chip jump'; c.textContent = `${j.w}px → ${j.n} columns`; list.append(c); });
+  const b = document.createElement('span'); b.className = 'chip bend'; b.textContent = `${P.M}px → bend (max-width)`; list.append(b);
+  function r(){
+    const pts = []; let prev = null;
+    for (let w = 200; w <= 1100; w += 1){ const n = hardCols(w, P); if (prev !== null && n !== prev) pts.push(null); pts.push([w, layout(w, P).cw]); prev = n; }
+    plot($('#discPlot'), {xmin:200, xmax:1100, ymin:0, ymax:320, xticks:[200,400,600,800,1000], yticks:[0,100,200,300], xlabel:'window width (px)', ylabel:'card width (px)',
+      marks: [...jumps.map(j => ({x:j.w, color: css('--jump'), dash:[4,4]})), {x:P.M, color: css('--accent'), dash:[2,3]}],
+      series: [{pts, color: css('--ink'), width: 2.2}]});
+  }
+  renders.push(r);
+})();
+
+/* ---------- 5 GEODESIC ---------- */
+(() => {
+  const A = {W:650, M:900}, Bp = {W:1000, M:500};
+  const lerp = (a, b, t) => a + (b - a)*t;
+  const paths = {
+    straight: {name:'Change both together (straight line)', f: t => ({W: lerp(A.W, Bp.W, t), M: lerp(A.M, Bp.M, t)})},
+    wfirst: {name:'Window first, then max-width', f: t => t < .5 ? {W: lerp(A.W, Bp.W, 2*t), M: A.M} : {W: Bp.W, M: lerp(A.M, Bp.M, 2*t - 1)}},
+    mfirst: {name:'Max-width first, then window', f: t => t < .5 ? {W: A.W, M: lerp(A.M, Bp.M, 2*t)} : {W: lerp(A.W, Bp.W, 2*t - 1), M: Bp.M}}
+  };
+  const jumpsOf = f => { let j = 0, prev = null; for (let i = 0; i <= 800; i++){ const q = f(i/800), n = hardCols(q.W, {...BASE, M: q.M}); if (prev !== null && n !== prev) j++; prev = n; } return j; };
+  Object.values(paths).forEach(p => p.jumps = jumpsOf(p.f));
+  const best = Object.keys(paths).reduce((a, b) => paths[a].jumps <= paths[b].jumps ? a : b);
+  let sel = 'straight';
+  const rad = $('#geoRadios');
+  Object.entries(paths).forEach(([k, p]) => { const l = document.createElement('label'); l.innerHTML = `<input type="radio" name="geo" id="geo-${k}" value="${k}" ${k === sel ? 'checked' : ''}> ${p.name}: <b class="mono">${p.jumps} jump${p.jumps === 1 ? '' : 's'}</b>${k === best ? ' ← geodesic' : ''}`; rad.append(l); });
+  rad.addEventListener('change', e => { sel = e.target.value; r(); });
+  const T = bindRange('geoT', v => Math.round(v/10) + '%'), st = makeStage($('#geoStage'));
+  function r(){
+    const cv = $('#geoMap'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+    cv.width = w*dpr; cv.height = h*dpr; const x = cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0);
+    const L = 46, R = 12, Tp = 12, Bt = 30, xmin = 400, xmax = 1100, ymin = 400, ymax = 1000;
+    const X = v => L + (v - xmin)/(xmax - xmin)*(w - L - R), Y = v => Tp + (1 - (v - ymin)/(ymax - ymin))*(h - Tp - Bt);
+    x.fillStyle = css('--sunk'); x.fillRect(0, 0, w, h);
+    const paper = css('--paper'), acc = css('--accent');
+    const cell = 4;
+    for (let sx = L; sx < w - R; sx += cell) for (let sy = Tp; sy < h - Bt; sy += cell){
+      const Wv = xmin + (sx - L)/(w - L - R)*(xmax - xmin), Mv = ymin + (1 - (sy - Tp)/(h - Tp - Bt))*(ymax - ymin);
+      const n = hardCols(Wv, {...BASE, M: Mv}); x.fillStyle = mix(paper, acc, 0.06 + (n - 1)/5*0.6); x.fillRect(sx, sy, cell, cell);
+    }
+    x.font = '11px "JetBrains Mono", monospace'; x.fillStyle = css('--muted');
+    [400,600,800,1000].forEach(t => { x.textAlign = 'center'; x.fillText(t, X(t), h - Bt + 15); });
+    [400,600,800,1000].forEach(t => { x.textAlign = 'right'; x.fillText(t, L - 6, Y(t) + 4); });
+    x.textAlign = 'right'; x.fillText('window width W', w - R, h - 2); x.textAlign = 'left'; x.fillText('max-width', 4, Tp + 4);
+    x.fillStyle = css('--ink'); x.textAlign = 'center';
+    [[430,'2'],[492,'3'],[628,'4'],[764,'5'],[960,'6']].forEach(([cx, lab]) => x.fillText(lab + ' col', X(Math.max(cx, xmin+30)), Y(960)));
+    Object.entries(paths).forEach(([k, p]) => {
+      x.strokeStyle = k === sel ? css('--ink') : alpha(css('--muted').startsWith('#') ? css('--muted') : '#888888', .7); x.lineWidth = k === sel ? 3 : 1.5; x.setLineDash(k === sel ? [] : [5,4]);
+      x.beginPath(); for (let i = 0; i <= 100; i++){ const q = p.f(i/100); if (i) x.lineTo(X(q.W), Y(q.M)); else x.moveTo(X(q.W), Y(q.M)); } x.stroke(); x.setLineDash([]);
+    });
+    const t = +T.value/1000, q = paths[sel].f(t);
+    [[A,'start'],[Bp,'end']].forEach(([p, lab]) => { x.fillStyle = css('--ink'); x.beginPath(); x.arc(X(p.W), Y(p.M), 5, 0, 7); x.fill(); x.textAlign = 'left'; x.fillText(lab, X(p.W) + 8, Y(p.M) - 6); });
+    x.fillStyle = css('--bad'); x.beginPath(); x.arc(X(q.W), Y(q.M), 6, 0, 7); x.fill();
+    const P = {...BASE, M: q.M}, Lt = layout(q.W, P); drawStage(st, q.W, Lt);
+    $('#geoRead').textContent = `Window ${Math.round(q.W)}px, max-width ${Math.round(q.M)}px → ${hardCols(q.W, P)} columns. This route makes ${paths[sel].jumps} jump${paths[sel].jumps === 1 ? '' : 's'}; the best one makes ${paths[best].jumps}.`;
+  }
+  T.addEventListener('input', r); renders.push(r);
+})();
+
+/* ---------- 6 SMOOTHNESS ---------- */
+(() => {
+  const soft = $('#smSoft'), tau = bindRange('smTau', v => v + 'px'), W = bindRange('smW', px), st = makeStage($('#smStage'));
+  let anim = null;
+  function r(){ const w = +W.value; drawStage(st, w, layout(w, BASE, soft.checked ? +tau.value : 0)); }
+  [soft, tau, W].forEach(e => e.addEventListener('input', r));
+  $('#smPlay').onclick = () => {
+    if (anim){ cancelAnimationFrame(anim); anim = null; $('#smPlay').textContent = 'Play a resize'; return; }
+    $('#smPlay').textContent = 'Stop';
+    const t0 = performance.now();
+    const loop = now => { const t = ((now - t0)/7000) % 1, s = 0.5 - 0.5*Math.cos(t*2*Math.PI); W.value = Math.round(300 + 700*s); W.dispatchEvent(new Event('input')); anim = requestAnimationFrame(loop); };
+    anim = requestAnimationFrame(loop);
+  };
+  renders.push(r);
+})();
+
+/* ---------- 7 LINEARITY ---------- */
+(() => {
+  const W = bindRange('lnW', px), st = makeStage($('#lnStage'), {ghost: true});
+  let a = +W.value, La = layout(a), va = velocity(a), frames = 0;
+  function r(){
+    const w = +W.value, L = layout(w); drawStage(st, w, L);
+    let err = 0;
+    L.cards.forEach((k, i) => {
+      const gx = La.cards[i].x + va[i].dx*(w - a), gw = La.cards[i].w + va[i].dw*(w - a), gy = La.cards[i].y;
+      const g = st.ghosts[i]; g.style.left = gx + 'px'; g.style.top = gy + 'px'; g.style.width = Math.max(8, gw) + 'px';
+      err = Math.max(err, Math.abs(gx - k.x), Math.abs(gw - k.w), Math.abs(gy - k.y));
+    });
+    const el = $('#lnRead');
+    if (err < 0.01){ el.className = 'readout good'; el.textContent = `Exact layout computed once at ${a}px. Prediction at ${w}px is perfect (error 0px). ${frames} resize frames predicted with one multiply each.`; }
+    else { el.className = 'readout bad'; el.textContent = `You crossed a breakpoint, so the straight-line guess is off by ${err.toFixed(0)}px. Time to compute exactly again.`; }
+  }
+  W.addEventListener('input', () => { frames++; r(); });
+  $('#lnAnchor').onclick = () => { a = +W.value; La = layout(a); va = velocity(a); frames = 0; r(); };
+  renders.push(r);
+})();
+
+/* ---------- 8 SIGNAL ---------- */
+(() => {
+  const NS = 256, w0 = 200, w1 = 1100, xs = [], ys = [];
+  for (let j = 0; j < NS; j++){ const w = w0 + (w1 - w0)*j/NS; xs.push(w); ys.push(layout(w).H); }
+  const spec = [];
+  for (let k = 0; k <= NS/2; k++){ let re = 0, im = 0; for (let j = 0; j < NS; j++){ const a = 2*Math.PI*k*j/NS; re += ys[j]*Math.cos(a); im -= ys[j]*Math.sin(a); } spec.push({k, re, im, amp: Math.hypot(re, im)*(k === 0 || k === NS/2 ? 1 : 2)}); }
+  const order = spec.slice().sort((a, b) => b.amp - a.amp);
+  const K = bindRange('fK', v => v + ' of ' + (NS/2 + 1));
+  function r(){
+    const keep = order.slice(0, +K.value);
+    const rec = xs.map((_, j) => { let s = 0; keep.forEach(c => { const f = (c.k === 0 || c.k === NS/2) ? 1 : 2, a = 2*Math.PI*c.k*j/NS; s += f*(c.re*Math.cos(a) - c.im*Math.sin(a)); }); return s/NS; });
+    plot($('#fPlot'), {xmin:w0, xmax:w1, ymin:0, ymax:600, xticks:[200,400,600,800,1000], yticks:[0,200,400,600], xlabel:'window width (px)', ylabel:'page height (px)',
+      series:[{pts: xs.map((w, j) => [w, ys[j]]), color: css('--muted'), width: 2}, {pts: xs.map((w, j) => [w, rec[j]]), color: css('--accent'), width: 2.4}]});
+  }
+  K.addEventListener('input', r); renders.push(r);
+})();
+
+/* ---------- 9 AVERAGE ---------- */
+(() => {
+  const ph = bindRange('avPh', v => v + '%'), tb = bindRange('avTb', v => v + '%'), dt = bindRange('avDt', v => v + '%');
+  const groups = [{mu:390, sd:25}, {mu:800, sd:50}, {mu:1440, sd:160}];
+  const erf = x => { const s = Math.sign(x); x = Math.abs(x); const t = 1/(1 + 0.3275911*x); const y = 1 - (((((1.061405429*t - 1.453152027)*t) + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t*Math.exp(-x*x); return s*y; };
+  const Phi = z => 0.5*(1 + erf(z/Math.SQRT2));
+  const bps = [-Infinity]; for (let n = 2; n <= 6; n++) bps.push(need(n, BASE)); bps.push(Infinity);
+  function r(){
+    let wts = [+ph.value, +tb.value, +dt.value]; const tot = wts.reduce((a, b) => a + b, 0) || 1; wts = wts.map(v => v/tot);
+    const pieces = []; let avg = 0;
+    for (let k = 0; k < 6; k++){
+      const lo = bps[k], hi = bps[k+1], n = k + 1, Hn = Hrows(Math.ceil(N/n), BASE);
+      let share = 0; groups.forEach((g, i) => share += wts[i]*(Phi((hi - g.mu)/g.sd) - Phi((lo - g.mu)/g.sd)));
+      pieces.push({lo, hi, n, Hn, share}); avg += Hn*share;
+    }
+    $('#avTable').innerHTML = '<tr><th>Widths</th><th>Cols</th><th>Height</th><th>Visitors</th></tr>' + pieces.map(p => `<tr><td class="mono">${isFinite(p.lo) ? p.lo : '0'}–${isFinite(p.hi) ? p.hi - 1 : '∞'}px</td><td class="mono">${p.n}</td><td class="mono">${p.Hn}px</td><td class="mono">${(p.share*100).toFixed(1)}%</td></tr>`).join('');
+    $('#avBig').textContent = avg.toFixed(1) + 'px';
+    $('#avSub').textContent = '= ' + pieces.filter(p => p.share > 0.0005).map(p => `${p.Hn}×${p.share.toFixed(2)}`).join(' + ');
+    const rho = w => groups.reduce((s, g, i) => s + wts[i]*Math.exp(-0.5*((w - g.mu)/g.sd)**2)/(g.sd*Math.sqrt(2*Math.PI)), 0);
+    const pts = []; let mx = 0; for (let w = 200; w <= 1800; w += 4){ const v = rho(w); mx = Math.max(mx, v); pts.push([w, v]); }
+    mx = mx*1.15 || 1;
+    const bands = pieces.map((p, i) => ({x0: Math.max(200, p.lo), x1: Math.min(1800, p.hi), color: alpha(css('--accent').startsWith('#') ? css('--accent') : '#0A7C70', i % 2 ? 0.10 : 0.03), label: Math.min(1800, p.hi) - Math.max(200, p.lo) > 90 ? p.Hn + 'px' : ''}));
+    plot($('#avPlot'), {xmin:200, xmax:1800, ymin:0, ymax:mx, xticks:[200,600,1000,1400,1800], yticks:[], xlabel:'window width (px)', ylabel:'how common', bands,
+      series:[{pts, color: css('--accent'), width: 2.2, fill: alpha(css('--accent').startsWith('#') ? css('--accent') : '#0A7C70', .18)}]});
+  }
+  [ph, tb, dt].forEach(e => e.addEventListener('input', r)); renders.push(r);
+})();
+
+/* ---------- 10 IMAGINARY ---------- */
+(() => {
+  const C = (re, im = 0) => ({re, im});
+  const add = (a, b) => C(a.re + b.re, a.im + b.im), sub = (a, b) => C(a.re - b.re, a.im - b.im);
+  const mul = (a, b) => C(a.re*b.re - a.im*b.im, a.re*b.im + a.im*b.re), scl = (a, k) => C(a.re*k, a.im*k);
+  const div = (a, b) => { const d = b.re*b.re + b.im*b.im; return C((a.re*b.re + a.im*b.im)/d, (a.im*b.re - a.re*b.im)/d); };
+  const csig = z => { const e = Math.exp(-z.re); return div(C(1), add(C(1), C(e*Math.cos(z.im), -e*Math.sin(z.im)))); };
+  const tau = 15, P = BASE;
+  function clayout(z){
+    const s = []; for (let n = 1; n <= 7; n++) s[n] = n === 1 ? C(1) : n === 7 ? C(0) : csig(scl(sub(z, C(need(n, P))), 1/tau));
+    const cards = Array.from({length:N}, () => ({x:C(0), y:C(0), w:C(0)})); let H = C(0);
+    for (let n = 1; n <= 6; n++){
+      const wn = sub(s[n], s[n+1]), cw = scl(sub(z, C(2*P.p + (n-1)*P.g)), 1/n), rows = Math.ceil(N/n);
+      for (let i = 0; i < N; i++){ const col = i % n, row = Math.floor(i/n); cards[i].x = add(cards[i].x, mul(wn, add(C(P.p), scl(add(cw, C(P.g)), col)))); cards[i].y = add(cards[i].y, mul(wn, C(P.p + row*(CH + P.g)))); cards[i].w = add(cards[i].w, mul(wn, cw)); }
+      H = add(H, mul(wn, C(Hrows(rows, P))));
+    }
+    return {cards, H};
+  }
+  const re = bindRange('imRe', px), im = bindRange('imIm', v => v + 'i px'), st = makeStage($('#imStage'));
+  let anim = null;
+  function r(){
+    const z = C(+re.value, +im.value), Lc = clayout(z), W = z.re;
+    let maxE = 0, who = '';
+    const L = {W, c: W, off: 0, H: Math.min(560, Math.max(100, Lc.H.re + 20)), cards: Lc.cards.map(k => ({x: Math.max(-20, Math.min(W, k.x.re)), y: Math.max(0, Math.min(500, k.y.re)), w: Math.max(20, Math.min(W, k.w.re))}))};
+    drawStage(st, W, L);
+    Lc.cards.forEach((k, i) => {
+      const nh = hardCols(W, {...P, M: Infinity}), e = Math.min(40, Math.abs(k.x.im - z.im*(i % nh)/nh) + Math.abs(k.y.im) + Math.abs(k.w.im - z.im/nh));
+      if (e > maxE){ maxE = e; who = CARDS[i][0]; }
+      const el = st.cards[i];
+      el.style.transform = `translateY(${-e*0.35}px) scale(${1 + e*0.006})`;
+      el.style.boxShadow = e > 0.5 ? `0 ${e*0.5}px ${e*1.1}px var(--shadow)` : 'none';
+      el.style.zIndex = String(Math.round(e) + 1);
+      el.querySelector('.tag').textContent = e > 0.5 ? `lift ${e.toFixed(1)}` : '';
+    });
+    $('#imRead').textContent = maxE > 0.5 ? `W = ${z.re} + ${z.im}i. Highest card: "${who}", lifted ${maxE.toFixed(1)}. Move the real part away from 696px and everything settles.` : `W = ${z.re} + ${z.im}i. No breakpoint nearby, so the cards barely lift.`;
+  }
+  [re, im].forEach(e => e.addEventListener('input', r));
+  $('#imWalk').onclick = () => {
+    if (anim){ cancelAnimationFrame(anim); anim = null; $('#imWalk').textContent = 'Walk around the 696px breakpoint'; return; }
+    $('#imWalk').textContent = 'Stop'; const t0 = performance.now();
+    const loop = now => { const t = ((now - t0)/4000) % 1, th = Math.PI*(1 - t); re.value = Math.round(696 + 70*Math.cos(th)); im.value = Math.round(40*Math.sin(th)); re.dispatchEvent(new Event('input')); im.dispatchEvent(new Event('input')); anim = requestAnimationFrame(loop); };
+    anim = requestAnimationFrame(loop);
+  };
+  renders.push(r);
+})();
+
+/* ---------- 11 CI ---------- */
+(() => {
+  const G = bindRange('ciG', px), Lm = bindRange('ciL', px);
+  function draw(bar, ro, P, L){
+    const res = prove(320, 1440, P, L); bar.innerHTML = '';
+    res.segs.forEach(s => { const d = document.createElement('div'); d.className = 'seg ' + s[2]; d.style.width = ((s[1] - s[0])/1120*100) + '%'; d.title = `${Math.round(s[0])}–${Math.round(s[1])}px`; bar.append(d); });
+    const bad = badRuns(res.segs);
+    ro.className = 'readout ' + (bad.length ? 'bad' : 'good');
+    ro.textContent = bad.length ? '✗ Blocked: too tall at ' + bad.map(s => `${Math.ceil(s[0])}–${Math.floor(s[1])}px`).join(', ') : '✓ Proven safe on every width';
+  }
+  function r(){ const L = +Lm.value; $('#ciCap1').textContent = `After: gap ${G.value}px`; draw($('#ciBar0'), $('#ciR0'), BASE, L); draw($('#ciBar1'), $('#ciR1'), {...BASE, g: +G.value}, L); }
+  [G, Lm].forEach(e => e.addEventListener('input', r)); renders.push(r);
+})();
+
+/* ---------- redraw on resize / theme ---------- */
+const all = () => renders.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+let raf = 0; window.addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(all); });
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', all); } catch (e) {}
+new MutationObserver(all).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(all);
+all();
+</script>
+
+</body>
+</html>

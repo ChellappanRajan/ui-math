@@ -1,0 +1,1 @@
+{"name":"ui-math","version":"1.0.0","private":true,"type":"module","description":"Learn the 11 tricks of Calculus of Interfaces on a six-card CSS grid.","scripts":{"test":"node --test","numbers":"node examples/numbers.js"}}
