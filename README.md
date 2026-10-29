@@ -39,6 +39,8 @@ Each chapter follows the same pattern: **Question → Baby steps → Apply it to
 | 11 | [Proof in CI](docs/11-proof-in-ci.md) | Can a robot block layout bugs before merge? | formal methods |
 | 12 | [Why calculus?](docs/12-why-calculus.md) | Why calculus, and what else could we use? | the big picture |
 
+Stuck on something? The [learning log](docs/learning-log.md) lists questions asked while learning, with short answers and where each is explained.
+
 ## The short answer to "why calculus?"
 
 UI props like window width, font size and gap are **continuous sliders**, and calculus is the math of continuous change. Once the UI is a formula, calculus answers "how fast?", "which way is better?", "what's next?" and "what's the average?" exactly, for all inputs at once, instead of by running the page over and over.
